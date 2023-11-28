@@ -1,0 +1,4 @@
+colorlog==6.7.0
+python-dotenv==1.0.0
+selenium==4.13.0
+watchdog==3.0.0
