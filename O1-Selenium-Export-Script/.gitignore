@@ -1,0 +1,7 @@
+/Selenium_Output
+/Export_Logs
+.env
+*.pkl
+*.log
+cookies.txt
+```

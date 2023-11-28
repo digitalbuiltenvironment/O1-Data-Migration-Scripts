@@ -74,7 +74,7 @@ O1_email=example_username
 O1_password=example_password
 ```
 
-![image](https://github.com/xKhronoz/O1-To-O2-Selenium-Script/assets/21101460/db98addb-ee82-4c82-a845-038dd65f50af)
+![Alt text](images/image.png)
 
 ## 🎈 Usage <a name="usage"></a>
 
@@ -86,25 +86,25 @@ python O1-Selenium-Export-Script.py
 
 - Exported files will be saved in the 'Selenium_Output' folder.
 
-    ![image](https://github.com/xKhronoz/O1-To-O2-Selenium-Script/assets/21101460/30885172-86d5-4424-a623-5aae92dcffea)
+    ![Alt text](images/image-1.png)
 
 - A 'temp' folder will be created in the 'Selenium_Output' folder to store temporary files.
 
-    ![image](https://github.com/xKhronoz/O1-To-O2-Selenium-Script/assets/21101460/1c907369-680a-440b-88f2-d14505a584eb)
+    ![Alt text](images/image-2.png)
 
 - Export logs will be saved in the 'Export_Logs' folder.
     - Inside you will be able to find a log file for each script run.
     - Each log file will contain the project name that the script was run on and the status of the export such as any errors e.g. due to skipped pages and total exported forms.
 
-    ![image](https://github.com/xKhronoz/O1-To-O2-Selenium-Script/assets/21101460/26409f9e-f9ed-4e8c-8536-ff7bb75020d5)
+    ![Alt text](images/image-3.png)
 
 - Script logs will be saved in the current folder with the same name as the script.
 
-  ![image](https://github.com/xKhronoz/O1-To-O2-Selenium-Script/assets/21101460/623d5931-fd57-4ef6-ada8-91c07195f0b1)
+    ![Alt text](images/image-4.png)
 
 - 'cookies.pkl' file will be saved after logging in, for use during script re-run.
 
-  ![image](https://github.com/xKhronoz/O1-To-O2-Selenium-Script/assets/21101460/32852ea8-8da6-4f74-8ad7-eded80eea58a)
+    ![Alt text](images/image-5.png)
 
 
 ## ⛏️ Built Using <a name = "built_using"></a>
