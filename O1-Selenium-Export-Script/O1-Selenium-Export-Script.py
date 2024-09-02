@@ -47,8 +47,8 @@ ELEMENT_WAIT_TIME = 5  # wait time in sec for getting elements
 MENU_WAIT_TIME = 10  # menu wait time in sec
 DEFAULT_WEBDRIVER_WAIT_TIME = 30  # default wait time in sec for webdriver
 SHORT_WEBDRIVER_WAIT_TIME = 15  # short wait time in seconds for webdriver
-REFRESH_WAIT_TIME = 10  # refresh wait time in sec
-MAX_RETRY = 5  # max number of retries for export
+REFRESH_WAIT_TIME = 5  # refresh wait time in sec
+MAX_RETRY = 1  # max number of retries for export
 # Build absolute path to output folder in current directory
 OUTPUT_PATH = os.path.join(os.getcwd(), env.get("OUTPUT_DIR_NAME"))
 # Build absolute path to temp download folder in current directory
@@ -243,7 +243,7 @@ class DownloadHandler(FileSystemEventHandler):
             os.path.splitext(self.expected_file_name)[1]
         )
         file_name_match = file_name_same or file_name_similar
-        ends_with_crdownload = modified_file_name.endswith(".crdownload")
+        ends_with_crdownload = modified_file_name.endswith(".tmp")
         unexpected_file = not file_name_match and not ends_with_crdownload
         if file_name_match and self.download_completed is False:
             LOG.debug(f"Downloaded: {event.src_path}")
@@ -1086,46 +1086,96 @@ def do_export_forms_pdf_sub(browser, target_folder):
         LOG.warning(not_found_msg(cur_item))
         return False
 
-
 def await_download_complete(file_name, timeout=600, sleep_frequency=1):
     """
     Waits for a download to complete, returns True if download completed,
-    False otherwise
+    False otherwise.
 
     Args:
-        file_name (string): file name to wait for
+        file_name (string): file name to wait for.
         timeout (int, optional): await download timeout in seconds.
         Defaults to 600.
         sleep_frequency (int, optional): how long to wait in seconds.
         Defaults to 1.
     """
-    # Create an observer to watch the downloads folder for a specific file
     LOG.debug("Downloading: {}".format(file_name))
+
+    # Extract the expected file extension from the provided file name
+    expected_extension = os.path.splitext(file_name)[1]
+
     event_handler = DownloadHandler(file_name)
     observer = Observer()
     observer.schedule(event_handler, path=TEMP_OUTPUT_PATH, recursive=False)
     observer.start()
 
-    # Wait for the specific file (e.g., "downloaded_file.zip")
-    # to appear in the downloads folder
-    # Adjust the timeout as needed
     start_time = time.time()
-    while event_handler.download_completed is False:
+    while not event_handler.download_completed:
         if time.time() - start_time > timeout:
             LOG.error("Download timeout exceeded.")
             return (False, None)
         time.sleep(sleep_frequency)
-    new_file_name = event_handler.downloaded_file_name
-    if new_file_name:
-        LOG.warning(
-            "Downloaded Filename Mismatch! Expected: {} | Actual: {}".format(
-                file_name, new_file_name
-            )
-        )
-    # Stop the observer
+
     observer.stop()
     observer.join()
-    return (True, new_file_name)
+
+    # If the expected filename does not match, check the file extension
+    downloaded_file_name = event_handler.downloaded_file_name
+    if downloaded_file_name:
+        downloaded_extension = os.path.splitext(downloaded_file_name)[1]
+        if downloaded_extension == expected_extension:
+            LOG.info("Downloaded file extension matches expected extension.")
+            return (True, downloaded_file_name)
+        else:
+            LOG.warning(
+                "Downloaded file extension mismatch! Expected: {} | Actual: {}".format(
+                    expected_extension, downloaded_extension
+                )
+            )
+            return (False, downloaded_file_name)
+    else:
+        LOG.warning("Downloaded file name is not available.")
+        return (False, None)
+
+
+# def await_download_complete(file_name, timeout=600, sleep_frequency=1):
+#     """
+#     Waits for a download to complete, returns True if download completed,
+#     False otherwise
+
+#     Args:
+#         file_name (string): file name to wait for
+#         timeout (int, optional): await download timeout in seconds.
+#         Defaults to 600.
+#         sleep_frequency (int, optional): how long to wait in seconds.
+#         Defaults to 1.
+#     """
+#     # Create an observer to watch the downloads folder for a specific file
+#     LOG.debug("Downloading: {}".format(file_name))
+#     event_handler = DownloadHandler(file_name)
+#     observer = Observer()
+#     observer.schedule(event_handler, path=TEMP_OUTPUT_PATH, recursive=False)
+#     observer.start()
+
+#     # Wait for the specific file (e.g., "downloaded_file.zip")
+#     # to appear in the downloads folder
+#     # Adjust the timeout as needed
+#     start_time = time.time()
+#     while event_handler.download_completed is False:
+#         if time.time() - start_time > timeout:
+#             LOG.error("Download timeout exceeded.")
+#             return (False, None)
+#         time.sleep(sleep_frequency)
+#     new_file_name = event_handler.downloaded_file_name
+#     # if new_file_name:
+#     #     LOG.warning(
+#     #         "Downloaded Filename Mismatch! Expected: {} | Actual: {}".format(
+#     #             file_name, new_file_name
+#     #         )
+#         # )
+#     # Stop the observer
+#     observer.stop()
+#     observer.join()
+#     return (True, new_file_name)
 
 
 def found_msg(cur_item):

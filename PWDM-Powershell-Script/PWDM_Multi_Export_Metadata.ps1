@@ -8,7 +8,7 @@ $currentDirectory = $PSScriptRoot
 # Read the .txt file line by line
 $projectIdsFile = "$currentDirectory\omc2-jtc.txt"
 
-$export_path = "C:\Users\YK\Desktop\JTC Intern\PWDM Export Script\PWDM Export\Test" # The top level folder path to export PWDM content for the target connected project
+$export_path = "E:\O1 PWDM Export\PWDM Metadata" # The top level folder path to export PWDM content for the target connected project
 $script_name = "PWDMExportScript" # Name of script, used for logging
 
 #endregion

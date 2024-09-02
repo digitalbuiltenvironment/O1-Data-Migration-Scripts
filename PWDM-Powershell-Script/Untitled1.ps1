@@ -7,7 +7,7 @@ $currentDirectory = $PSScriptRoot
 
 # Read the .txt file line by line
 $projectIdsFile = "$currentDirectory\project_ids.txt"
-$export_path = "D:\PWDM Export\BENOI" # The top level folder path to export PWDM content for the target connected project
+$export_path = "D:\PWDM Export\FASCIA (A)" # The top level folder path to export PWDM content for the target connected project
 $script_name = "PWDMExportScript" # Name of script, used for logging
 
 #endregion
