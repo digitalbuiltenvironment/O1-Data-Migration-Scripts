@@ -49,7 +49,7 @@ MENU_WAIT_TIME = 10  # menu wait time in sec
 DEFAULT_WEBDRIVER_WAIT_TIME = 30  # default wait time in sec for webdriver
 SHORT_WEBDRIVER_WAIT_TIME = 15  # short wait time in seconds for webdriver
 REFRESH_WAIT_TIME = 5  # refresh wait time in sec
-MAX_RETRY = 1  # max number of retries for export
+MAX_RETRY = 3  # max number of retries for export
 # Build absolute path to output folder in current directory
 OUTPUT_PATH = os.path.join(os.getcwd(), env.get("OUTPUT_DIR_NAME"))
 # Build absolute path to temp download folder in current directory
@@ -1088,7 +1088,7 @@ def do_export_forms_pdf_sub(browser, target_folder):
         LOG.warning(not_found_msg(cur_item))
         return False
 
-def await_download_complete(file_name, timeout=600, sleep_frequency=1):
+def await_download_complete(file_name, timeout=2400, sleep_frequency=1):
     """
     Waits for a download to complete, returns True if download completed,
     False otherwise.
