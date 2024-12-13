@@ -43,13 +43,12 @@ COOKIES_FILE = env.get("COOKIES_FILE")
 PROJ_URLS_FILE = env.get("PROJ_URLS_FILE")
 DELAY = 1  # delay in seconds
 SHORT_DELAY = 0.5  # short delay
-LONGER_DELAY = 5.0
-ELEMENT_WAIT_TIME = 20  # wait time in sec for getting elements
+ELEMENT_WAIT_TIME = 5  # wait time in sec for getting elements
 MENU_WAIT_TIME = 10  # menu wait time in sec
 DEFAULT_WEBDRIVER_WAIT_TIME = 30  # default wait time in sec for webdriver
 SHORT_WEBDRIVER_WAIT_TIME = 15  # short wait time in seconds for webdriver
 REFRESH_WAIT_TIME = 5  # refresh wait time in sec
-MAX_RETRY = 3  # max number of retries for export
+MAX_RETRY = 1  # max number of retries for export
 # Build absolute path to output folder in current directory
 OUTPUT_PATH = os.path.join(os.getcwd(), env.get("OUTPUT_DIR_NAME"))
 # Build absolute path to temp download folder in current directory
@@ -195,7 +194,7 @@ IGNORED_EXCEPTIONS = (
 ALL_ERRORS = SELENIUM_ERROR + (Exception, OSError)
 
 # Get xpaths and css selectors for elements
-table_rows = env.get("table_row")
+table_row = env.get("table_row")
 table_row_title = env.get("table_row_title")
 three_dots = env.get("three_dots")
 export_to_pdf = env.get("export_to_pdf")
@@ -482,9 +481,10 @@ def export_forms_data(browser, form_types_list, proj_folder, proj_name):
     # strip the form type of any whitespaces
     form_types_list = [form_type.strip() for form_type in form_types_list]
     # loop through all the list items
+    ignore_form = ["My work", "Work by items"]
     for form_type in form_types_list:
         # ignore 'My Work' form type
-        if form_type == "My work" or form_type == "Work by items":
+        if form_type in ignore_form:
             continue
         retry_count = 0
         form_found = False
@@ -621,9 +621,9 @@ def export_forms_excel(browser, form_type, target_folder, proj_name, archive=Fal
     # loop till export is successful or retry count is more than max retry
     while is_exported is False and retry_count <= MAX_RETRY:
         try:
-            cur_item = ("Table Row", "tr")
+            cur_item = ("Export all to Excel ", "button")
             # wait till table row is present
-            wait.until(EC.presence_of_element_located((By.XPATH, table_rows)))
+            wait.until(EC.presence_of_element_located((By.XPATH, table_row)))
             LOG.info("{} | {} > Export Excel".format(proj_name, form_type))
             # export all data to excel main function
             do_export_forms_data_excel_main(browser, archive)
@@ -645,7 +645,7 @@ def export_forms_excel(browser, form_type, target_folder, proj_name, archive=Fal
             LOG.warning(not_found_msg(cur_item))
             LOG.warning("Export Excel Failed!")
             # refresh page if any element is timed out
-            refresh_page_export(browser, table_rows)
+            refresh_page_export(browser, table_row)
             if retry_count < MAX_RETRY:
                 LOG.warning(
                     "Export Excel > {} | Retry: {}/{}".format(
@@ -959,7 +959,7 @@ def do_export_forms_pdf_main(
     )
     action = ActionChains(browser)
     # wait till page is loaded
-    wait.until(EC.presence_of_element_located((By.XPATH, table_rows)))
+    wait.until(EC.presence_of_element_located((By.XPATH, table_row)))
     # set wait for element wait time
     wait = WebDriverWait(
         browser, ELEMENT_WAIT_TIME, ignored_exceptions=IGNORED_EXCEPTIONS
@@ -977,7 +977,7 @@ def do_export_forms_pdf_main(
         )
         action.click(select_all).perform()
         LOG.debug(found_msg(cur_item))
-        time.sleep(LONGER_DELAY)  # give time for page to load
+        time.sleep(SHORT_DELAY)  # give time for page to load
         # if form is archived
         if archive is True:
             cur_item = ("Export to PDF", "btn")
@@ -1006,7 +1006,6 @@ def do_export_forms_pdf_main(
                     time.sleep(SHORT_DELAY)  # give time for tippy box to load
                     # check if tippy box is present
                     cur_item = ("Tippy Box", "div")
-                    wait = WebDriverWait(browser, ELEMENT_WAIT_TIME, ignored_exceptions=IGNORED_EXCEPTIONS)
                     wait.until(
                         EC.visibility_of_element_located(
                             (By.XPATH, "{}".format(tippy_box))
@@ -1060,8 +1059,8 @@ def do_export_forms_pdf_sub(browser, target_folder):
         action.click(export_btn).perform()
         LOG.debug(found_msg(cur_item))
         # downloaded zip file name should be in this format:
-        # SYNCHRO_export_yyyy_mm_dd.zip
-        pdfs_file_name = "SYNCHRO_export_{}.zip".format(time.strftime("%Y_%m_%d"))
+        # BIC_export_yyyy_mm_dd.zip
+        pdfs_file_name = "BIC_export_{}.zip".format(time.strftime("%Y_%m_%d"))
         # wait for pdfs zip file to be downloaded
         download_completed, new_file_name = await_download_complete(pdfs_file_name)
         if download_completed:
@@ -1088,7 +1087,7 @@ def do_export_forms_pdf_sub(browser, target_folder):
         LOG.warning(not_found_msg(cur_item))
         return False
 
-def await_download_complete(file_name, timeout=2400, sleep_frequency=1):
+def await_download_complete(file_name, timeout=600, sleep_frequency=1):
     """
     Waits for a download to complete, returns True if download completed,
     False otherwise.
@@ -1111,7 +1110,6 @@ def await_download_complete(file_name, timeout=2400, sleep_frequency=1):
     observer.start()
 
     start_time = time.time()
-    
     while not event_handler.download_completed:
         if time.time() - start_time > timeout:
             LOG.error("Download timeout exceeded.")
@@ -1125,12 +1123,6 @@ def await_download_complete(file_name, timeout=2400, sleep_frequency=1):
     downloaded_file_name = event_handler.downloaded_file_name
     if downloaded_file_name:
         downloaded_extension = os.path.splitext(downloaded_file_name)[1]
-        
-        # Handle files still downloading (like .crdownload)
-        if downloaded_extension == '.crdownload':
-            LOG.warning("Download is still in progress with a temporary extension (.crdownload).")
-            return (False, downloaded_file_name)
-
         if downloaded_extension == expected_extension:
             LOG.info("Downloaded file extension matches expected extension.")
             return (True, downloaded_file_name)
@@ -1142,8 +1134,50 @@ def await_download_complete(file_name, timeout=2400, sleep_frequency=1):
             )
             return (False, downloaded_file_name)
     else:
-        LOG.error("No file was downloaded.")
+        LOG.warning("Downloaded file name is not available.")
         return (False, None)
+
+
+# def await_download_complete(file_name, timeout=600, sleep_frequency=1):
+#     """
+#     Waits for a download to complete, returns True if download completed,
+#     False otherwise
+
+#     Args:
+#         file_name (string): file name to wait for
+#         timeout (int, optional): await download timeout in seconds.
+#         Defaults to 600.
+#         sleep_frequency (int, optional): how long to wait in seconds.
+#         Defaults to 1.
+#     """
+#     # Create an observer to watch the downloads folder for a specific file
+#     LOG.debug("Downloading: {}".format(file_name))
+#     event_handler = DownloadHandler(file_name)
+#     observer = Observer()
+#     observer.schedule(event_handler, path=TEMP_OUTPUT_PATH, recursive=False)
+#     observer.start()
+
+#     # Wait for the specific file (e.g., "downloaded_file.zip")
+#     # to appear in the downloads folder
+#     # Adjust the timeout as needed
+#     start_time = time.time()
+#     while event_handler.download_completed is False:
+#         if time.time() - start_time > timeout:
+#             LOG.error("Download timeout exceeded.")
+#             return (False, None)
+#         time.sleep(sleep_frequency)
+#     new_file_name = event_handler.downloaded_file_name
+#     # if new_file_name:
+#     #     LOG.warning(
+#     #         "Downloaded Filename Mismatch! Expected: {} | Actual: {}".format(
+#     #             file_name, new_file_name
+#     #         )
+#         # )
+#     # Stop the observer
+#     observer.stop()
+#     observer.join()
+#     return (True, new_file_name)
+
 
 def found_msg(cur_item):
     """Return found message"""
