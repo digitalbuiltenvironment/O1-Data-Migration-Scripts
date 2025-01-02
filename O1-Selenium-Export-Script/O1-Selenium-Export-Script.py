@@ -482,7 +482,7 @@ def export_forms_data(browser, form_types_list, proj_folder, proj_name):
     action = ActionChains(browser)
     # strip the form type of any whitespaces
     form_types_list = [form_type.strip() for form_type in form_types_list]
-    ignore_forms = ['My work','Work by items','[Archived] SMM Inspection Checklist','Incident Investigation Report','WSD Form 1']
+    ignore_forms = ['My work','Work by items']
     # loop through all the list items
     for form_type in form_types_list:
         # ignore 'My Work' form type
